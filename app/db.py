@@ -3,7 +3,7 @@ from .config import DB_Setting
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 
-DB_URL= f'sqlalchemy+psycopg://{DB_Setting.DB_USERNAME}:{DB_Setting.DB_PWD}@{DB_Setting.DB_HOSTNAME}:{DB_Setting.DB_PORT}/{DB_Setting.DB_NAME}'
+DB_URL= f'postgresql+psycopg://{DB_Setting.DB_USERNAME}:{DB_Setting.DB_PWD}@{DB_Setting.DB_HOSTNAME}:{DB_Setting.DB_PORT}/{DB_Setting.DB_NAME}'
 
 eng = create_engine(DB_URL)
 

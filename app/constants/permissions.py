@@ -1,6 +1,8 @@
 from enum import Enum
 
-class permissions(str, Enum):
+class PermissionEnum(str, Enum):
     DASHBOARD = "dashboard"
     USERS = "users"
+    TASKS = "tasks"
+    
     
