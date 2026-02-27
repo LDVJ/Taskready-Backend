@@ -19,3 +19,19 @@ class DbSetting(BaseSettings):
     )
 
 DB_Setting = DbSetting()
+
+class Seed_Admin(BaseSettings):
+    ADMIN_EMAIL : str
+    ADMIN_PWD : str
+
+    @property
+    def cleaned_pwd(self):
+        return self.DB_PWD.strip()
+
+
+    model_config = SettingsConfigDict(
+        env_file=os.path.join(os.getcwd(), ".env"),
+        extra="ignore"
+    )
+
+Seed_setting = Seed_Admin()
