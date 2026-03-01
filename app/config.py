@@ -18,7 +18,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str
 
     #verification 
-    VERIFICATION_SECRET_KEY: str
+    EMAIL_API_KEY : str
+    DOMAIN_NAME : str
 
     @property
     def cleaned_db_pwd(self):
