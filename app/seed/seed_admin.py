@@ -5,10 +5,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from ..constants.user_role import RoleEnum
 from .. import utilities
-from ..config import Seed_setting
+from ..config import settings
 
-ADMIN_EMAIL = Seed_setting.ADMIN_EMAIL
-ADMIN_PWD  = Seed_setting.ADMIN_PWD
+ADMIN_EMAIL = settings.ADMIN_EMAIL
+ADMIN_PWD  = settings.ADMIN_PWD
 
 
 def seed_admin(db : Session):
@@ -36,6 +36,6 @@ def run_seeders() -> None:
         db.close()
 
 
-if __name__ == "__main__":
-    run_seeders()
+# if __name__ == "__main__":
+#     run_seeders()
     

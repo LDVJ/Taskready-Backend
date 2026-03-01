@@ -1,9 +1,9 @@
 from sqlalchemy import create_engine
-from .config import DB_Setting
+from .config import settings
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 
-DB_URL= f'postgresql+psycopg://{DB_Setting.DB_USERNAME}:{DB_Setting.DB_PWD}@{DB_Setting.DB_HOSTNAME}:{DB_Setting.DB_PORT}/{DB_Setting.DB_NAME}'
+DB_URL= f'postgresql+psycopg://{settings.DB_USERNAME}:{settings.DB_PWD}@{settings.DB_HOSTNAME}:{settings.DB_PORT}/{settings.DB_NAME}'
 
 eng = create_engine(DB_URL)
 

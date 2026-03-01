@@ -26,7 +26,7 @@ class Permission(Base):
     __tablename__ = "permissions"
 
     id : Mapped[int] = mapped_column(primary_key=True)
-    content : Mapped[PermissionEnum] = mapped_column(SQLEnum(PermissionEnum, name = "user_permission_enum"), nullable=False)
+    content : Mapped[PermissionEnum] = mapped_column(SQLEnum(PermissionEnum, name = "user_permission"), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     user : Mapped["User"] = relationship("User", back_populates="permission")
     
