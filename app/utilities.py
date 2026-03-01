@@ -1,13 +1,16 @@
 from pwdlib import PasswordHash
 import jwt
+from fastapi import HTTPException, status
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from datetime import datetime, timedelta, timezone
 from .config import settings
 import uuid
 import logging
-import resend
 
 hashing  = PasswordHash.recommended()
-resend.api_key = settings.EMAIL_API_KEY 
+# resend.api_key = settings.EMAIL_API_KEY_RESEND
+sg_client= SendGridAPIClient(settings.SENDGRID_API_KEY)
 
 # password
 def create_hash_password(plain_password: str) -> str:
@@ -17,7 +20,6 @@ def verify_hash_password(plain_password :str, hashed_password: str) -> bool:
     return hashing.verify(password=plain_password,hash= hashed_password)
 
 #jwt session 
-
 def create_access_token(user_data: dict, expire_at : timedelta = timedelta(minutes=30), refres : bool = None):
     payload = {
         "user" : user_data,
@@ -37,6 +39,7 @@ def decode_access_token(token : str):
         logging.exception(e)
         return None
 
+
 # email token
 
 def create_verification_token(email: str) -> str:
@@ -45,30 +48,81 @@ def create_verification_token(email: str) -> str:
         "sub":email,
         "exp":expire_at
     }
-    token = jwt.encode(to_encode, key=settings.EMAIL_API_KEY, algorithm=settings.ALGORITHM)
+    token = jwt.encode(to_encode, key=settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return token
 
 def send_verification_email(email: str, token: str, name: str):
     verify_url = f'{settings.DOMAIN_NAME}/users/verify?token={token}'
-    # print("verify_url",verify_url)
-    print(f"--- DEBUG: Attempting to send email with API Key: '{resend.api_key}' ---")
+    brand_orange = "#E87722"
+    brand_navy = "#1D3557"
+    off_white = "#FDF8EE"
 
-    params = {
-        "from": "onboarding@resend.dev", # Verified domain required for custom emails
-        "to": email,
-        "subject": "Verify your Taskready Account",
-        "html": f"""
-            <h3>Hi {name},</h3>
-            <p>Thanks for signing up! Please verify your email by clicking the link below:</p>
-            <a href="{verify_url}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-                Verify Email Address
-            </a>
-            <p>If the button doesn't work, copy this link: {verify_url}</p>
-        """
-    }
-    print("params",params)
+    html_content = f"""
+    <div style="background-color: {off_white}; padding: 50px 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-align: center;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 10px solid {brand_orange};">
+            <div style="padding: 40px 30px;">
+                <!-- Logo Text -->
+                <h1 style="color: {brand_navy}; margin: 0 0 10px 0; font-size: 28px; text-transform: uppercase; letter-spacing: 2px; font-weight: 900;">
+                    TASK READY
+                </h1>
+                
+                <h2 style="color: {brand_navy}; margin-bottom: 20px; font-size: 22px;">Confirm Your Email</h2>
+                
+                <p style="color: #555555; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+                    Hi <strong>{name}</strong>,<br>
+                    Welcome to Task Ready! To get started, please verify your email address by clicking the button below.
+                </p>
+
+                <!-- Centralized Button -->
+                <div style="margin: 35px 0;">
+                    <a href="{verify_url}" style="background-color: {brand_orange}; color: #ffffff; padding: 16px 35px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 6px rgba(232, 119, 34, 0.3);">
+                        VERIFY EMAIL ADDRESS
+                    </a>
+                </div>
+
+                <p style="color: #888888; font-size: 13px; margin-top: 40px;">
+                    If the button doesn't work, copy and paste this link into your browser:
+                </p>
+                <p style="word-break: break-all; margin-top: 10px;">
+                    <a href="{verify_url}" style="color: {brand_navy}; font-size: 12px; text-decoration: underline;">{verify_url}</a>
+                </p>
+            </div>
+            
+            <div style="background-color: #f9f9f9; padding: 20px; border-top: 1px solid #eeeeee;">
+                <p style="color: #aaaaaa; font-size: 11px; margin: 0;">
+                    &copy; 2024 Task Ready Inc. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </div>
+    """
+    message = Mail(
+
+        from_email=settings.SENDGRID_EMAIL, 
+        to_emails=email,
+        subject='Verify your Taskready Account',
+        html_content=html_content
+    )
     
     try:
-        resend.Emails.send(params=params)
+        sg_client.send(message)
     except Exception as e:
-        print(f'Resend Error: {e}')
+        print(f'SendGrid Error: {e}')
+
+
+def  verify_verification_email(token: str):
+    try:
+        user_info = jwt.decode(token, algorithms=[settings.ALGORITHM], key=settings.SECRET_KEY)
+        return user_info
+    except jwt.ExpiredSignatureError:
+        # Specific PyJWT exception for expired tokens
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="The verification link has expired."
+        )
+    except jwt.InvalidTokenError:
+        # Catch-all for any other JWT issues (invalid signature, malformed, etc.)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Invalid or tampered verification link."
+        )

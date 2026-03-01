@@ -17,9 +17,13 @@ class Settings(BaseSettings):
     ALGORITHM: str
     SECRET_KEY: str
 
-    #verification 
-    EMAIL_API_KEY : str
+    #verification with RESEND
+    EMAIL_API_KEY_RESEND : str
     DOMAIN_NAME : str
+
+    #sendgrid email functionoality
+    SENDGRID_API_KEY : str
+    SENDGRID_EMAIL: str
 
     @property
     def cleaned_db_pwd(self):

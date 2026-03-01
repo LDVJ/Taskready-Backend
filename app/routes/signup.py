@@ -24,7 +24,6 @@ def new_user(payload: schemas.CreateUser, background_tasks : BackgroundTasks,db 
 
         token = utilities.create_verification_token(new_user.email)
         background_tasks.add_task(utilities.send_verification_email, email=new_user.email, token=token, name=new_user.name)
-        print("Background Task line passed")
     except:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An unexpected error occurred. Please try again later.")
