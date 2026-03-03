@@ -30,5 +30,11 @@ class Permission(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     user : Mapped["User"] = relationship("User", back_populates="permission")
     
+class UserSession(Base):
+    __tablename__ = "user_sessions"
 
-    
+    id : Mapped[int] = mapped_column(primary_key=True)
+    user_id : Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    refresh_token_hash : Mapped[str] = mapped_column(nullable=False)
+    expires_at : Mapped[datetime] = mapped_column(nullable=False)
+    created_at : Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

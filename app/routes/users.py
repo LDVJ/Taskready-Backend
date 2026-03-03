@@ -29,4 +29,3 @@ def verify_user(token :str, db : Session = Depends(get_db)):
         "is_verified":user.is_verified
     }
     
-    

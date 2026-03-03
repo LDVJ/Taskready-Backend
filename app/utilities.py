@@ -1,9 +1,14 @@
 from pwdlib import PasswordHash
 import jwt
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
+from sqlalchemy.orm import Session
+from .db import get_db
+from . import models, schemas
+from .config import settings
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from datetime import datetime, timedelta, timezone
+from fastapi.security import oauth2
 from .config import settings
 import uuid
 import logging
@@ -12,32 +17,15 @@ hashing  = PasswordHash.recommended()
 # resend.api_key = settings.EMAIL_API_KEY_RESEND
 sg_client= SendGridAPIClient(settings.SENDGRID_API_KEY)
 
+OAuth2_schema = oauth2.OAuth2PasswordBearer(tokenUrl="login")
+
+
 # password
 def create_hash_password(plain_password: str) -> str:
     return hashing.hash(password=plain_password)
 
 def verify_hash_password(plain_password :str, hashed_password: str) -> bool:
     return hashing.verify(password=plain_password,hash= hashed_password)
-
-#jwt session 
-def create_access_token(user_data: dict, expire_at : timedelta = timedelta(minutes=30), refres : bool = None):
-    payload = {
-        "user" : user_data,
-        "exp": datetime.now(timezone.utc) + expire_at,
-        "jti": str(uuid.uuid4())
-    }
-
-    access_token = jwt.encode(algorithm=settings.ALGORITHM, key=settings.SECRET_KEY, payload=payload)
-
-    return access_token
-
-def decode_access_token(token : str):
-    try:
-        user = jwt.decode(jwt=token, algorithms=[settings.ALGORITHM], key=settings.SECRET_KEY)
-        return user
-    except jwt.PyJWTError as e:
-        logging.exception(e)
-        return None
 
 
 # email token

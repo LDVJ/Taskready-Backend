@@ -21,3 +21,6 @@ class CreateUser(UserBase):
 class CreateMember(UserBase):
     password : str
     permission : PermissionEnum
+
+class TokenInfo(BaseModel):
+    id : int

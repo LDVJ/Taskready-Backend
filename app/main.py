@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 # from .startup import run_startup_tasks
-from .routes import signup, users
+from .routes import signup, users, authentication, admin
 
 app = FastAPI()
 
@@ -17,4 +17,6 @@ def root():
 
 
 app.include_router(signup.router)
+app.include_router(authentication.router)
 app.include_router(users.router)
+app.include_router(admin.router)
