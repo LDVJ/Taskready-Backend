@@ -1,9 +1,6 @@
 from pwdlib import PasswordHash
 import jwt
-from fastapi import HTTPException, status, Depends
-from sqlalchemy.orm import Session
-from .db import get_db
-from . import models, schemas
+from fastapi import HTTPException, status
 from .config import settings
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
@@ -12,6 +9,8 @@ from fastapi.security import oauth2
 from .config import settings
 import uuid
 import logging
+import hashlib
+import secrets
 
 hashing  = PasswordHash.recommended()
 # resend.api_key = settings.EMAIL_API_KEY_RESEND
@@ -114,3 +113,11 @@ def  verify_verification_email(token: str):
             status_code=status.HTTP_401_UNAUTHORIZED, 
             detail="Invalid or tampered verification link."
         )
+    
+
+def hash_refresh_token(token : str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+def verify_hash_token(token :str, hash_token_db :str) -> bool:
+    hashed_token = hash_refresh_token(token)
+    return secrets.compare_digest(hashed_token, hash_token_db)

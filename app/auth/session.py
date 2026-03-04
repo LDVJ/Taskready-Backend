@@ -39,7 +39,22 @@ def get_user(bearer_token : str = Depends(OAuth2_schema), db : Session = Depends
     user_data = db.query(models.User).filter(models.User.id == token.id).first()
     return user_data
 
-def create_refresh_token(user_dict : dict):
+def create_refresh_token(user_data : dict):
     payload = {
-        
+        "user":user_data,
+        "exp" : datetime.now(timezone.utc) + timedelta(days=7)
     }
+    refresh_token = jwt.encode(payload=payload,algorithm=settings.ALGORITHM,key=settings.SECRET_KEY)
+
+    return refresh_token
+
+def verify_refresh_token(refresh_token : str):
+    try:
+        payload = jwt.decode(refresh_token, key=settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        user_id =  payload.get("user")
+        if user_id is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Unauthorised action', headers={"WWW_Authenticate":"Bearer"})
+        token_data = schemas.TokenInfo(id= user_id)
+    except jwt.InvalidTokenError as e:
+        raise e
+    return token_data
