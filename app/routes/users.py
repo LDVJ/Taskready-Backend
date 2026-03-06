@@ -28,4 +28,7 @@ def verify_user(token :str, db : Session = Depends(get_db)):
         "user_name":user.name,
         "is_verified":user.is_verified
     }
-    
+
+@router.patch("/")
+def update_user():
+    pass

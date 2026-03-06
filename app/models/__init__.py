@@ -1,1 +1,1 @@
-from app.models.user_model import User, Permission
+from app.models.user_model import User, Permission, UserSession
