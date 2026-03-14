@@ -12,10 +12,21 @@ router = APIRouter(
     tags=["Admin"]
 )
 
-@router.get("/user", response_model= list[schemas.UserBase])
+@router.get("/users", response_model= list[schemas.UserBase])
 def get_admin_details(db: Session = Depends(get_db), current_user : models.User = Depends(session.get_user)):
     if current_user.role != RoleEnum.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only Admin have the rights to access this")
     all_user = db.query(models.User).filter(models.User.role == RoleEnum.USER).all()
 
     return all_user
+
+@router.delete("/users/{uid}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(uid : int, db : Session = Depends(get_db), current_user : models.User = Depends(session.get_user)):
+    if current_user.role != RoleEnum.ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only Admin Can delete the user")
+    target_user = db.query(models.User).filter(models.User.id == uid).first()
+
+    db.delete(target_user)
+    db.commit()
+
+
