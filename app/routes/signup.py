@@ -1,15 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from .. import schemas, models, utilities
+from ..auth import session
 from ..db import get_db
 
 
 router = APIRouter(
-    prefix="/signup",
+    prefix="/user",
     tags=["Signup"]
 )
 
-@router.post("/", response_model=schemas.UserBase, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=schemas.UserBase, status_code=status.HTTP_201_CREATED)
 def new_user(payload: schemas.CreateUser, background_tasks : BackgroundTasks,db : Session = Depends(get_db) ):
     payload_dict = payload.model_dump(exclude_unset=True)
     simp_password = payload_dict["password"]
@@ -28,3 +29,21 @@ def new_user(payload: schemas.CreateUser, background_tasks : BackgroundTasks,db 
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An unexpected error occurred. Please try again later.")
     return new_user
+
+
+# @router.patch("/update", response_model=schemas.UserBase)
+@router.patch("/update")
+def update_user(payload : schemas.UserBase, db : Session = Depends(get_db), current_user : models.User = Depends(session.get_user)):
+    if payload.email != current_user.email:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Permission Denied")
+    payload_dict = payload.model_dump(exclude_unset=True)
+
+    user_info = db.query(models.User).filter(models.User.id == current_user.id).first()
+
+    for key, items in payload_dict.items():
+        setattr(user_info, key, items)
+    
+    db.commit()
+    db.refresh(user_info)
+
+    return user_info
