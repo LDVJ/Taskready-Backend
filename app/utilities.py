@@ -7,8 +7,6 @@ from sendgrid.helpers.mail import Mail
 from datetime import datetime, timedelta, timezone
 from fastapi.security import oauth2
 from .config import settings
-import uuid
-import logging
 import hashlib
 import secrets
 

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from .. import schemas, models, utilities
 from ..auth import session
 from ..db import get_db
+from ..constants.user_role import RoleEnum
 
 
 router = APIRouter(
@@ -12,11 +13,14 @@ router = APIRouter(
 
 @router.post("/signup", response_model=schemas.UserBase, status_code=status.HTTP_201_CREATED)
 def new_user(payload: schemas.CreateUser, background_tasks : BackgroundTasks,db : Session = Depends(get_db) ):
+    if payload.role == RoleEnum.ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin can't be created with this path")
     payload_dict = payload.model_dump(exclude_unset=True)
     simp_password = payload_dict["password"]
     hash_password= utilities.create_hash_password(simp_password)
     payload_dict["password"] = hash_password
     new_user = models.User(**payload_dict)
+
 
     db.add(new_user)
     try:
@@ -31,19 +35,22 @@ def new_user(payload: schemas.CreateUser, background_tasks : BackgroundTasks,db 
     return new_user
 
 
-# @router.patch("/update", response_model=schemas.UserBase)
-@router.patch("/update")
+@router.patch("/update", response_model=schemas.UserBase)
+# @router.patch("/update")
 def update_user(payload : schemas.UserBase, db : Session = Depends(get_db), current_user : models.User = Depends(session.get_user)):
     if payload.email != current_user.email:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Permission Denied")
     payload_dict = payload.model_dump(exclude_unset=True)
 
-    user_info = db.query(models.User).filter(models.User.id == current_user.id).first()
-
     for key, items in payload_dict.items():
-        setattr(user_info, key, items)
+        setattr(current_user, key, items)
     
-    db.commit()
-    db.refresh(user_info)
+    try:
+        db.commit()
+        db.refresh(current_user)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Update failed")
 
-    return user_info
+    return current_user
+
