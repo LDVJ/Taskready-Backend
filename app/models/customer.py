@@ -8,7 +8,8 @@ from sqlalchemy import String
 class Customer(Base):
     __tablename__ = "customer"
 
-    id : Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, primary_key=True)
+    id : Mapped[int] = mapped_column(primary_key=True, nullable=False)
+    u_id : Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     customer_info : Mapped["User"] = relationship("User")
     address: Mapped[list["Address"]] = relationship("Address", cascade="all, delete-orphan")
 
@@ -16,7 +17,8 @@ class Customer(Base):
 class Address(Base):
     __tablename__ = "address"
 
-    uid : Mapped[int] = mapped_column(ForeignKey("customer.id", ondelete="CASCADE"),primary_key=True, nullable=False)
+    id : Mapped[int] = mapped_column(primary_key=True, nullable=False)
+    uid : Mapped[int] = mapped_column(ForeignKey("customer.id", ondelete="CASCADE"), nullable=False)
 
     house_number : Mapped[str] = mapped_column(String(50), nullable=False)
     landmark : Mapped[str] = mapped_column(String(100))
