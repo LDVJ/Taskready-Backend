@@ -15,6 +15,11 @@ router = APIRouter(
 def new_user(payload: schemas.CreateUser, background_tasks : BackgroundTasks,db : Session = Depends(get_db) ):
     if payload.role == RoleEnum.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin can't be created with this path")
+    
+    check_email = db.query(models.User).filter(models.User.email == payload.email).first()
+    if check_email:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email Already exists")
+
     payload_dict = payload.model_dump(exclude_unset=True)
     simp_password = payload_dict["password"]
     hash_password= utilities.create_hash_password(simp_password)
