@@ -22,6 +22,9 @@ class UserBase(BaseModel):
 class CreateUser(UserBase):
     password : str
 
+class UserResponse(UserBase):
+    id : int
+
 class CreateMember(UserBase):
     password : str
     permission : PermissionEnum
@@ -44,7 +47,7 @@ class Address(BaseModel):
 
 class CustomerBase(BaseModel):
     customer_info : UserBase
-    address: Address
+    address: Address | None = None
     model_config= ConfigDict(from_attributes=True)
 
 class CustomerResponse(CustomerBase):
@@ -79,7 +82,7 @@ class TaskBase(BaseModel):
     currency: Currency
     amount : int
     payment_method : PaymentMode
-    
+
     model_config= ConfigDict(from_attributes=True)
 
 class CreateTask(TaskBase):

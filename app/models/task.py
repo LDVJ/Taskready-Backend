@@ -14,7 +14,8 @@ from sqlalchemy import Enum as SQLENUM
 class Tasker(Base):
     __tablename__ = "tasker"
 
-    u_id : Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True,nullable=False)
+    id : Mapped[int] = mapped_column(primary_key=True, nullable=False)
+    u_id : Mapped[int] = mapped_column(ForeignKey("users.id"),nullable=False)
     skills : Mapped[list["TaskerSkill"]] = relationship("TaskerSkill", cascade="all, delete-orphan")
     created_at : Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     rating : Mapped[float] = mapped_column(default=0.0, nullable=False)
@@ -27,9 +28,9 @@ class Tasks(Base):
     __tablename__ = "tasks"
 
     task_id : Mapped[int] = mapped_column(primary_key=True, nullable=False)
-    tasker_id : Mapped[int] = mapped_column(ForeignKey("tasker.u_id", ondelete="CASCADE"))
+    tasker_id : Mapped[int] = mapped_column(ForeignKey("tasker.id", ondelete="CASCADE"))
     tasker : Mapped["Tasker"] = relationship("Tasker", back_populates="tasks")
-    customer_id : Mapped[int] = mapped_column(ForeignKey("customer", ondelete="CASCADE"), nullable=False) 
+    customer_id : Mapped[int] = mapped_column(ForeignKey("customer.id", ondelete="CASCADE"), nullable=False) 
     customer : Mapped["Customer"] = relationship("Customer")
     task_title : Mapped[str] = mapped_column(String(100), nullable=False)
     task_description : Mapped[str] = mapped_column(String)
@@ -37,7 +38,7 @@ class Tasks(Base):
     currency: Mapped[Currency] = mapped_column(SQLENUM(Currency, name="currency_enum"))
     amount : Mapped[int] = mapped_column(nullable=False)
     payment_method : Mapped[PaymentMode] = mapped_column(SQLENUM(PaymentMode, name = "payment_method_enum"), nullable=False)
-    task_status : Mapped[TaskStatus] = mapped_column(SQLENUM(TaskStatus, name = "Task_status_enum"), server_default=TaskStatus.POSTED)
+    task_status : Mapped[TaskStatus] = mapped_column(SQLENUM(TaskStatus, name = "Task_status_enum"), default=TaskStatus.POSTED)
     task_start_date : Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     task_end_date : Mapped[datetime] =  mapped_column(DateTime(timezone=True), nullable=True)
     created_at : Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -47,5 +48,5 @@ class TaskerSkill(Base):
     __tablename__ = "taskerskill"
 
     id : Mapped[int] = mapped_column(primary_key=True, nullable=False)
-    tasker_id : Mapped[int] = mapped_column(ForeignKey("tasker.u_id", ondelete="CASCADE"), nullable=False)
+    tasker_id : Mapped[int] = mapped_column(ForeignKey("tasker.id", ondelete="CASCADE"), nullable=False)
     tasker_skill : Mapped[SkillsEnum] = mapped_column(SQLENUM(SkillsEnum, name = "skills_enum"))
