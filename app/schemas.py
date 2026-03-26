@@ -54,15 +54,18 @@ class CustomerResponse(CustomerBase):
     id : int
     u_id : int
 
-class TaskerSkill(BaseModel):
-    id : int
-    tasker_id : int
+class TaskerSkillBase(BaseModel):
     tasker_skill : SkillsEnum
 
     model_config= ConfigDict(from_attributes=True)
 
+class TaskerSkillResponse(TaskerSkillBase):
+    id : int
+    tasker_id : int
+
+
 class TaskerBase(BaseModel):
-    skills : list[TaskerSkill]
+    skills : list[TaskerSkillResponse]
     tasks : list[TaskBase]
     model_config= ConfigDict(from_attributes=True)
 
