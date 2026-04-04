@@ -101,3 +101,6 @@ class TaskResponse(CreateTask):
     created_at : datetime
     task_status : TaskStatus | None = TaskStatus.POSTED
     # customer : 
+
+class CheckTasker(BaseModel):
+    id : int
