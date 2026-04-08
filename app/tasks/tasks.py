@@ -6,3 +6,6 @@ router = APIRouter(
     tags=["Tasks"]
 )
 
+@router.get("/")
+def add_new_task():
+    pass
